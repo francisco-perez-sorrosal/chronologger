@@ -1,0 +1,30 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+install:
+  - pip install -r requirements_dev.txt
+
+script:
+  - pytest
+
+after_success:
+  - coveralls
+
+jobs:
+  include:
+    - stage: 'Bump Version'
+      python: '3.7'
+      script: skip
+      after_success:
+        - echo "Creating and pushing new build version to master"
+        - bumpversion --verbose --allow-dirty build --message "[skip travis] Bumping version from {current_version} -> {new_version}"
+        - git remote add origin-version https://${GH_TOKEN}@github.com/francisco-perez-sorrosal/chronologger.git > /dev/null 2>&1
+        - git checkout -b bump_version
+        - git --no-pager log --oneline -n 5
+        - git push origin-version bump_version:master
+        - echo "Sending coverage report..."
+
