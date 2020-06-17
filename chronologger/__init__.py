@@ -1,2 +1,2 @@
-from chronologger.chronologger import Chronologger, TimeUnit
-from chronologger.model import TimeEvent
+from .chronologger import Chronologger
+from .model import TimeUnit, Tick, Period

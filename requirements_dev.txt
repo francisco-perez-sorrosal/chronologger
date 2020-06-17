@@ -4,3 +4,4 @@ coveralls
 pytest
 pytest-cov<2.6.0
 dataclasses; python_version < '3.7'
+typing_extensions; python_version <= '3.7'
