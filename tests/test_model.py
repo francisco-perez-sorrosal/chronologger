@@ -8,17 +8,12 @@ time_event_name = "tick"
 
 def test_tick_basic_properties():
     tick = Tick(time_event_name)
+    assert isinstance(tick, TimeEvent)
+    assert isinstance(tick, Tick)
     assert tick.name == time_event_name
     assert tick.unit == TimeUnit.s
     now = time.perf_counter()
     assert tick.time() < now
-
-
-def test_tick_representation(capsys):
-    tick = Tick(time_event_name)
-    print(tick)
-    captured = capsys.readouterr()
-    assert time_event_name in captured.out
 
 
 def test_tick_conversions():
@@ -30,13 +25,13 @@ def test_tick_conversions():
     tick_ms = tick.to(TimeUnit.ms)
     assert tick_ms.name == tick.name
     assert tick_ms.unit == TimeUnit.ms
-    assert math.isclose(tick_ms.time(), tick.time() * 10 ** tick_ms.unit.value, rel_tol=0.02)
+    assert math.isclose(tick_ms.time(), TimeUnit.ms.from_secs(tick.time()), rel_tol=0.02)
 
     tick_ns = tick.to(TimeUnit.ns)
     assert tick_ns.name == tick.name
     assert tick_ns.unit == TimeUnit.ns
-    assert math.isclose(tick_ns.time(), tick.time() * 10 ** tick_ns.unit.value, rel_tol=0.02)
-    now_in_ns = time.perf_counter() * 10 ** 9
+    assert math.isclose(tick_ns.time(), TimeUnit.ns.from_secs(tick.time()), rel_tol=0.02)
+    now_in_ns = TimeUnit.ns.from_secs(time.perf_counter())
     assert tick_ns.time() < now_in_ns
 
 
@@ -109,6 +104,131 @@ def test_heterogeneous_period_gets_converted_properly_to_homogeneous(capsys):
     captured = capsys.readouterr()
     assert "elapsed" in captured.out
     assert TimeUnit.ms.name in captured.out
+
+
+# TODO The next four tests can be combined using text fixtures and validation data passed as arguments
+def test_homogeneous_explicit_period_creation(capsys):
+    """This should test that the conversions and calculations are correct
+    given that the main time unit driving the process is the one that
+    corresponds to the first period. As all the ticks are explicitly passed,
+    no conversions are needed"""
+
+    driver_time_unit = TimeUnit.s
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_1 = Tick("tick")
+    time.sleep(sleep_time_secs)
+    tick_2 = Tick("tack")
+
+    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_3 = Tick("tock")
+    time.sleep(sleep_time_secs)
+    tick_4 = Tick("tuck")
+
+    explicit_period_2 = Period("period_2", TimeUnit.s, tick_3, tick_4)
+
+    combined_explicit_period = Period("new_period", TimeUnit.s, explicit_period_1.start, explicit_period_2.end)
+
+    assert combined_explicit_period.name == "new_period"
+    assert combined_explicit_period.unit == driver_time_unit
+    assert combined_explicit_period.start == tick_1
+    assert combined_explicit_period.end == tick_4
+
+
+def test_homogeneous_calculated_period_difference(capsys):
+    """This should test that the conversions and calculations are correct
+    given that the main time unit driving the process is the one that
+    corresponds to the first period. As all the ticks involved are
+    homogeneous with regard to the time units, no conversions are needed"""
+
+    driver_time_unit = TimeUnit.s
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_1 = Tick("tick")
+    time.sleep(sleep_time_secs)
+    tick_2 = Tick("tack")
+
+    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_3 = Tick("tock")
+    time.sleep(sleep_time_secs)
+    tick_4 = Tick("tuck")
+
+    explicit_period_2 = Period("period_2", TimeUnit.s, tick_3, tick_4)
+
+    combined_calculated_period = explicit_period_2 - explicit_period_1
+
+    assert combined_calculated_period.name == f"elapsed ({tick_4.name} - {tick_1.name})"
+    assert combined_calculated_period.unit == driver_time_unit
+    assert combined_calculated_period.start == tick_1
+    assert combined_calculated_period.end == tick_4
+
+
+def test_heterogeneous_explicit_period_creation(capsys):
+    """This should test that the conversions and calculations are correct
+    given that the main time unit driving the process is the one that
+    corresponds to the first period. As all the ticks involved are
+    homogeneous with regard to the time units, no conversions are needed"""
+
+    driver_time_unit = TimeUnit.s
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_1 = Tick("tick", TimeUnit.ns)
+    time.sleep(sleep_time_secs)
+    tick_2 = Tick("tack", TimeUnit.ms)
+
+    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_3 = Tick("tock", TimeUnit.ns)
+    time.sleep(sleep_time_secs)
+    tick_4 = Tick("tuck", TimeUnit.ms)
+
+    explicit_period_2 = Period("period_2", TimeUnit.ms, tick_3, tick_4)
+
+    combined_calculated_period = Period("new_period", driver_time_unit, explicit_period_1.start, explicit_period_2.end)
+
+    assert combined_calculated_period.name == f"new_period"
+    assert combined_calculated_period.unit == driver_time_unit
+    assert combined_calculated_period.start.name == tick_1.name
+    assert combined_calculated_period.start.unit == tick_1.unit
+    assert combined_calculated_period.end.name == tick_4.name
+    assert combined_calculated_period.end.unit == tick_4.unit
+
+
+def test_heterogeneous_calculated_period_difference(capsys):
+    """This should test that the conversions and calculations are correct
+    given that the main time unit driving the process is the one that
+    corresponds to the first period. Conversions of the ticks involved
+    are expected"""
+
+    driver_time_unit = TimeUnit.s
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_1 = Tick("tick", TimeUnit.ns)
+    time.sleep(sleep_time_secs)
+    tick_2 = Tick("tack", TimeUnit.ms)
+
+    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+
+    sleep_time_secs = 0.1  # 100 ms
+    tick_3 = Tick("tock", TimeUnit.ns)
+    time.sleep(sleep_time_secs)
+    tick_4 = Tick("tuck", TimeUnit.ms)
+
+    explicit_period_2 = Period("period_2", TimeUnit.ms, tick_3, tick_4)
+
+    combined_calculated_period = explicit_period_2 - explicit_period_1
+
+    assert combined_calculated_period.name == f"elapsed ({tick_4.name} - {tick_1.name})"
+    assert combined_calculated_period.unit == driver_time_unit
+    assert combined_calculated_period.start.name == tick_1.name
+    assert combined_calculated_period.start.unit == driver_time_unit
+    assert combined_calculated_period.end.name == tick_4.name
+    assert combined_calculated_period.end.unit == driver_time_unit
 
 
 def test_event_recorder_can_hold_and_retrieve_events():

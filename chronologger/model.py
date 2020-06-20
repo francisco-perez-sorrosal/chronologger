@@ -28,10 +28,6 @@ class TimeUnit(enum.Enum):
     def to_secs(self, timelapse: float) -> float:
         return timelapse / 10 ** self.x
 
-    def from_secs_as_str(self, secs: float) -> str:
-        format_str = "{:0.3f} {}" if self.name == "s" else "{:0.0f} {}"
-        return format_str.format(self.from_secs(secs), self.name)
-
 
 @runtime_checkable
 class TimeEvent(Protocol):
@@ -51,10 +47,6 @@ class TimeEvent(Protocol):
     def __sub__(self, other: 'TimeEvent') -> 'TimeEvent':
         raise NotImplementedError
 
-    # @abstractmethod
-    # def __repr__(self) -> str:
-    #     raise NotImplementedError
-
 
 @dataclass(frozen=True)
 class Tick:
@@ -66,13 +58,13 @@ class Tick:
 
     def time(self) -> float:
         """Returns the value of the time in the TimeUnits in which the object is specified"""
-        return self.unit.to_secs(self._tick_in_secs) if self.unit == TimeUnit.s else self.unit.from_secs(
-            self._tick_in_secs)
+        return self.unit.from_secs(self._tick_in_secs)
 
     def to(self, unit: TimeUnit) -> 'Tick':
+        print("PIS")
         if unit == self.unit:
             return self
-        else:
+        else:  # Create new object with a new time unit. Immutability broken, but just in the creation of a new object
             new_object = replace(self, unit=unit)
             object.__setattr__(new_object, '_tick_in_secs', self._tick_in_secs)
             return new_object
@@ -86,11 +78,28 @@ class Tick:
 
 @dataclass(frozen=True)
 class Period:
-    """Represents the elapsed time between two time events"""
+    """Represents the elapsed time between two time events.
+
+    We allow heterogeneous Periods when explicitly created, meaning
+    that the ticks passed can have different TimeUnits. Calculations to
+    reconcile the results are done when results are presented."
+    """
     name: str
     unit: TimeUnit
-    start: TimeEvent
-    end: TimeEvent
+    start: Tick
+    end: Tick
+
+    # If we don't want to allow heterogeneus Periods (see class description) uncomment
+    # this and change the semantics
+    # def __post_init__(self):
+    #     if self.start.unit != self.unit or self.end.unit != self.unit:
+    #         message = (
+    #             f"Ether start or end ticks have different units from Period units."
+    #             f"start tick {self.start.name} -> {self.start.unit.name}"
+    #             f"end tick {self.end.name} -> {self.end.unit.name}"
+    #             f"Please convert them first"
+    #         )
+    #         raise ChronologgerError(message)
 
     def elapsed(self) -> float:
         """Returns the value of the elapsed time in the TimeUnits in which the object is specified"""
@@ -105,8 +114,17 @@ class Period:
     def to(self, unit: TimeUnit) -> 'Period':
         return Period("elapsed", unit, self.start, self.end)
 
-    def __sub__(self, other: TimeEvent) -> 'Period':
-        return Period("elapsed", self.unit, other, self)
+    def __sub__(self, other: 'Period') -> 'Period':
+        """Builds a new Period from the parts of the two periods involved.
+
+        Instead of keeping a Frankenstein period, we get the start tick from
+        the subtracting period and the end tick from the minuend. The time
+        unit from the new period will be the one from the start_tick."""
+        new_time_unit = other.unit
+        new_start_tick = other.start.to(new_time_unit)
+        new_end_tick = self.end.to(new_time_unit)
+        return Period(f"elapsed ({new_end_tick.name} - {new_start_tick.name})",
+                      new_time_unit, new_start_tick, new_end_tick)
 
     def __str__(self) -> str:
         return f"{self.name}: {self.time():.3f} {self.unit.name}    =    {self.end} - {self.start}"
