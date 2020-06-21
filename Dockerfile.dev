@@ -1,0 +1,23 @@
+FROM python:3.8-slim-buster
+
+# Required packages... e.g. git
+COPY install_docker_pkgs_dev.sh .
+RUN ./install_docker_pkgs_dev.sh
+
+# We can mount here the local development copy
+RUN mkdir -p /src/chronologger
+
+# Here we copy the latest version at the time of creating the image
+RUN mkdir /chronologger
+WORKDIR /chronologger
+
+# Install python requirements
+COPY requirements_dev.txt .
+RUN pip install -r requirements_dev.txt
+
+ENV PYTHONUNBUFFERED=1
+
+# Copy the application
+COPY . .
+
+WORKDIR /src/chronologger

@@ -1,0 +1,12 @@
+FROM python:3.8-slim-buster
+
+# Required packages... e.g. git
+COPY install_docker_pkgs_example.sh .
+RUN ./install_docker_pkgs_example.sh
+
+# This command requires git
+RUN pip install git+https://git@github.com/francisco-perez-sorrosal/chronologger.git
+COPY examples/simple_example.py .
+
+# Execute a simple example just for testing
+RUN python simple_example.py

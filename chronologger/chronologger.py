@@ -36,12 +36,12 @@ class Chronologger(ContextDecorator):
         Chronologger.unique_names.add(self.name)
         self.logger(f"{self.name} created!")
 
-    def start(self, initial_tick_name: str = "start_tick") -> "Chronologger":
+    def start(self, start_tick_name: str = "start_tick") -> "Chronologger":
         """Start a new basic timer"""
         if len(self.ticks) > 0:
             raise ChronologgerError("Timer is already running! .reset() or .stop(reset=True) to reuse this timer")
 
-        self.ticks.add(Tick(initial_tick_name, unit=self.unit))
+        self.ticks.add(Tick(start_tick_name, unit=self.unit))
 
         return self
 

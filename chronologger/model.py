@@ -44,7 +44,7 @@ class TimeEvent(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def __sub__(self, other: 'TimeEvent') -> 'TimeEvent':
+    def __sub__(self, other: 'TimeEvent') -> 'Period':
         raise NotImplementedError
 
 
@@ -61,7 +61,6 @@ class Tick:
         return self.unit.from_secs(self._tick_in_secs)
 
     def to(self, unit: TimeUnit) -> 'Tick':
-        print("PIS")
         if unit == self.unit:
             return self
         else:  # Create new object with a new time unit. Immutability broken, but just in the creation of a new object
@@ -70,7 +69,7 @@ class Tick:
             return new_object
 
     def __sub__(self, other: TimeEvent) -> 'Period':
-        return Period("elapsed", self.unit, other, self)
+        return Period("elapsed", other.unit, other, self)
 
     def __str__(self) -> str:
         return f"{self.name}: {self.time():.3f} {self.unit.name}"
@@ -86,8 +85,8 @@ class Period:
     """
     name: str
     unit: TimeUnit
-    start: Tick
-    end: Tick
+    start: TimeEvent
+    end: TimeEvent
 
     # If we don't want to allow heterogeneus Periods (see class description) uncomment
     # this and change the semantics
