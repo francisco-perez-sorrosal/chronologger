@@ -130,7 +130,7 @@ class Period:
                       new_time_unit, new_start_tick, new_end_tick)
 
     def __str__(self) -> str:
-        return f"{self.time():.3f} {self.unit.name}    =    {self.end} - {self.start}"
+        return f"{self.time():.3f} {self.unit.name} ({self.name})   =    {self.end} - {self.start}"
 
 
 @dataclass(frozen=True)

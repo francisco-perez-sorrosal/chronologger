@@ -23,7 +23,7 @@ time_event_name = "tick"
 #         pass
 
 
-def test_events_recording():
-    tick = Tick(time_event_name)
-    last_recorded_time_event = record(tick)
-    assert last_recorded_time_event == tick
+# def test_events_recording():
+#     tick = Tick(time_event_name)
+#     last_recorded_time_event = record(tick)
+#     assert last_recorded_time_event == tick
