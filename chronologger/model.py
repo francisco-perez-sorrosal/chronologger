@@ -1,8 +1,10 @@
 import enum
+import itertools
 import time
-from abc import abstractmethod
+from abc import abstractmethod, ABC
+from contextlib import ContextDecorator
 from dataclasses import dataclass, field, replace
-from typing import List, Optional
+from typing import List, Optional, ClassVar, Callable, Any
 
 try:
     from typing import Protocol, runtime_checkable
@@ -69,6 +71,8 @@ class Tick:
             return new_object
 
     def __sub__(self, other: TimeEvent) -> 'Period':
+        if other is None:
+            return self
         return Period("elapsed", other.unit, other, self)
 
     def __str__(self) -> str:
@@ -111,7 +115,7 @@ class Period:
         return self.elapsed()
 
     def to(self, unit: TimeUnit) -> 'Period':
-        return Period("elapsed", unit, self.start, self.end)
+        return Period(self.name, unit, self.start, self.end)
 
     def __sub__(self, other: 'Period') -> 'Period':
         """Builds a new Period from the parts of the two periods involved.
@@ -126,7 +130,7 @@ class Period:
                       new_time_unit, new_start_tick, new_end_tick)
 
     def __str__(self) -> str:
-        return f"{self.name}: {self.time():.3f} {self.unit.name}    =    {self.end} - {self.start}"
+        return f"{self.time():.3f} {self.unit.name}    =    {self.end} - {self.start}"
 
 
 @dataclass(frozen=True)
@@ -183,3 +187,80 @@ class EventRecorder:
             previous_marker = marker
             i += 1
         return markers_str
+
+
+def event_recorder():
+    return EventRecorder()
+
+
+@dataclass(frozen=False)
+class Chronologger:
+    """Core class. Manages the creation of every tick and period."""
+
+    id_iter: ClassVar[int] = itertools.count()
+
+    name: Optional[str] = None
+    unit: TimeUnit = TimeUnit.s
+    description: str = ""
+    hierarchy_level: int = 0
+    logger: Callable[[str], None] = print
+    simple_log_msgs: bool = True
+    ticks: EventRecorder = field(default_factory=event_recorder)
+
+    parent: Optional[str] = None
+
+    def __post_init__(self) -> None:  # TODO This is not necessary anymore... but leave it for now...
+        """Initialization: add unique name at least"""
+        if not self.name:
+            object.__setattr__(self, 'name', "timer_" + str(next(Chronologger.id_iter)))
+
+    def start(self, start_tick_name: str = "start_tick") -> TimeEvent:
+        """Start a new basic timer"""
+        time_event = Tick(start_tick_name, self.unit)
+        self.ticks.add(time_event)
+        return time_event
+
+    def _report_time(self, do_log, period):
+        if self.logger and do_log:
+            self.logger(f"{period.time():3f} {period.unit.name} elapsed time") if self.simple_log_msgs else self.logger(
+                self)
+
+    def stop(self, final_tick_name: str = "end_tick", do_log: bool = False, reset: bool = False) -> Period:
+        """Stop the basic timer reporting the elapsed time"""
+        if len(self.ticks) == 0:
+            raise ChronologgerError(f"Timer not started yet! Use .start() to start counting time...")
+
+        tick = Tick(final_tick_name, unit=self.unit)
+
+        period: Period = self.ticks.add(tick)
+        self._report_time(do_log, period)
+
+        self.reset() if reset else None
+
+        return period.to(self.unit)
+
+    def mark(self, name: str) -> TimeEvent:
+        tick = Tick(name, unit=self.unit)
+        self.ticks.add(tick)
+        return tick
+
+    def reset(self) -> None:
+        self.ticks = EventRecorder()
+
+
+class TimeContext(ContextDecorator, ABC):
+    name: str
+    parent_ctx: "TimeContext"
+    decorated: bool
+    chrono: Chronologger = field(default_factory=Chronologger)
+    log_when_exiting: bool = False
+
+    # TODO Create method to allow to report phases e.g. def phase():
+
+    @abstractmethod
+    def __enter__(self) -> "TimeContext":
+        pass
+
+    @abstractmethod
+    def __exit__(self, *exc_info: Any):
+        pass

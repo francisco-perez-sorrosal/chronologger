@@ -23,22 +23,22 @@ def test_chronologger_log_repoting(capsys):
     timer.stop(reset=True)
     # assert False
     captured = capsys.readouterr()  # As default option in .stop() above does not log any message, then...
-    assert "elapsed" not in captured.out
+    assert "elapsed time" not in captured.out
 
     # This time log the standard message
-    timer.start()
-    timer.stop(do_log=True)
+    timer.start(start_tick_name="st")
+    timer.stop(do_log=True, final_tick_name="ft")
     captured = capsys.readouterr()
-    assert "elapsed" in captured.out
+    assert "elapsed time" in captured.out
     print(captured.out)
 
     # Check extended log messages
     timer = Chronologger(name='explicit_name', simple_log_msgs=False)
     assert timer.name == "explicit_name"
-    timer.start()
-    timer.stop(do_log=True)
+    timer.start(start_tick_name="st1")
+    timer.stop(do_log=True, final_tick_name="ft1")
     captured = capsys.readouterr()
-    assert "elapsed" in captured.out
+    assert "elapsed time" in captured.out
     assert "start_tick" in captured.out
     assert "end_tick" in captured.out
 
@@ -47,12 +47,12 @@ def test_as_context_manager(capsys):
     with Chronologger():
         time.sleep(0)
     captured = capsys.readouterr()
-    assert "elapsed" not in captured.out
+    assert "elapsed time" not in captured.out
 
     with Chronologger(log_when_exiting_context=True):
         time.sleep(0)
     captured = capsys.readouterr()
-    assert "elapsed" in captured.out
+    assert "elapsed time" in captured.out
 
 
 def test_as_decorator(capsys):
@@ -62,7 +62,7 @@ def test_as_decorator(capsys):
 
     dummy()
     captured = capsys.readouterr()
-    assert "elapsed" not in captured.out
+    assert "elapsed time" not in captured.out
 
     @Chronologger(log_when_exiting_context=True)
     def dummy():
@@ -70,7 +70,7 @@ def test_as_decorator(capsys):
 
     dummy()
     captured = capsys.readouterr()
-    assert "elapsed" in captured.out
+    assert "elapsed time" in captured.out
 
 
 def test_unit_conversion(capsys):
