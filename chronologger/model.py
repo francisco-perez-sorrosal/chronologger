@@ -247,6 +247,9 @@ class Chronologger:
     def reset(self) -> None:
         self.ticks = EventRecorder()
 
+    def get_all(self) -> List[TimeEvent]:
+        return self.ticks.get_all()
+
 
 class TimeContext(ContextDecorator, ABC):
     name: str
@@ -256,6 +259,9 @@ class TimeContext(ContextDecorator, ABC):
     log_when_exiting: bool = False
 
     # TODO Create method to allow to report phases e.g. def phase():
+
+    def get_all(self):
+        return self.chrono.get_all()
 
     @abstractmethod
     def __enter__(self) -> "TimeContext":

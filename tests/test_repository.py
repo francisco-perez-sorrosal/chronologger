@@ -1,47 +1,46 @@
-from chronologger import Tick
+from chronologger import Tick, Timer, TimeUnit, root_repo
 from chronologger.repository import TimeRepository, RootTimeRepository
 
-#
-# def test_nested_nodes_1_level():
-#     repo = TimeRepository("test_repo")
-#     root_tick = Tick("root_tick")
-#     repo.register_root(root_tick)
-#
-#     t1 = Tick("phase 1")
-#     t2 = Tick("phase 2")
-#     t3 = Tick("phase 3")
-#
-#     repo.add(t1, "root_tick")
-#     repo.add(t2, "root_tick")
-#     repo.add(t3, "root_tick")
-#
-#     events = repo.get_all(include_root=True)
-#     assert events == list([root_tick, t1, t2, t3])
-#
-#     events = repo.get_all(include_root=False)
-#     assert events == list([t1, t2, t3])
-#
-#
-# def test_nested_nodes_1_level():
-#
-#     repo = TimeRepository("test_repo")
-#     root_tick = Tick("root_tick")
-#     repo.register_root(root_tick)
-#
-#     t1 = Tick("phase 1")
-#     t11 = Tick("phase 1.1")
-#     t12 = Tick("phase 1.2")
-#
-#     repo.add(t1, "root_tick")
-#     repo.add(t11, "phase 1")
-#     repo.add(t12, "phase 1")
-#
-#     events = repo.get_all(include_root=False)
-#     assert events == list([t1, t11, t12])
-#
-#
-# def test_root_repo():
-#     repo = RootTimeRepository("test_root_repo")
-#     assert repo.name == 'test_root_repo'
-#     assert len(repo.get_all()) == 1
-#     assert repo.get_all()[0].name == 'root'
+
+def test_root_repo_is_initialized():
+    assert isinstance(root_repo, RootTimeRepository)
+    assert root_repo.name == 'root'
+
+
+def test_nodes_at_root_level():
+    root_timer = Timer("root")
+    repo = TimeRepository(root_timer)
+
+    t1 = Tick("phase 1")
+    t2 = Tick("phase 2")
+    t3 = Tick("phase 3")
+
+    repo.add(t1)
+    repo.add(t2)
+    repo.add(t3)
+
+    events = repo.get_all()
+    assert events == list([t1, t2, t3])
+
+
+def test_nested_nodes_1_level():
+    root_timer = Timer("root")
+    repo = TimeRepository(root_timer)
+
+    t1 = Tick("tick 1")
+    repo.add(t1)
+
+    events = repo.get_all()
+    assert events == list([t1])
+
+    p1_timer = Timer("phase_1", unit=TimeUnit.ms, parent_ctx=root_timer)
+    repo.register(p1_timer)
+
+    repo.add(Tick("simulated tick 1.1"), p1_timer)
+    repo.add(Tick("simulated tick 1.2"), p1_timer)
+
+    events = repo.get_all()
+    assert len(
+        events) == 3  # TODO For now it's a flat structure and we can't check nested timer contents as we have to invoke the service
+
+    assert len(repo.time_contexts) == 2

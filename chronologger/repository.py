@@ -35,14 +35,18 @@ class TimeRepository(AbstractTimeRepository):
             self.root_time_context.chrono.logger(f"Timer {time_context.name} registered in repo {self.name}")
 
     def add(self, time_event: TimeEvent, time_context: TimeContext = None):
+        time_context = time_context if time_context else self.root_time_context  # Assign the default time context in None is passed
         if self.time_contexts.get(time_context.name, None):
             time_context = self.time_contexts[time_context.name]
 
         self.time_events.append(time_event)
         self.time_contexts[time_context.name] = time_context
 
-    def get(self, event_name) -> Optional[TimeEvent]:
-        pass
+    def get(self, time_context: TimeContext) -> List[TimeEvent]:
+        return self.time_contexts.get(time_context.name).get_all()
+
+    def get_all(self) -> List[TimeEvent]:
+        return self.time_events
 
     def __str__(self):
         representation = ""
@@ -57,7 +61,7 @@ class RootTimeRepository(TimeRepository):
         TimeRepository.__init__(self, root_context)
 
 
-time_repo: TimeRepository = None
+time_repo: Optional[TimeRepository] = None
 
 
 def init_repo(time_context: TimeContext = None):
@@ -72,7 +76,7 @@ def init_repo(time_context: TimeContext = None):
     return time_repo
 
 
-def get_repo():
+def get_repo() -> Optional[TimeRepository]:
     """
     Returns the root time_repo.
     """

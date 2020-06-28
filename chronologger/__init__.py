@@ -3,4 +3,4 @@ from .repository import init_repo
 from .timer import Timer
 
 main_timer = Timer(name="root")
-repository.init_repo(main_timer)
+root_repo = repository.init_repo(main_timer)
