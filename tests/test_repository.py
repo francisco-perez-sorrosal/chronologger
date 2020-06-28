@@ -11,9 +11,9 @@ def test_nodes_at_root_level():
     root_timer = Timer("root")
     repo = TimeRepository(root_timer)
 
-    t1 = Tick("phase 1")
-    t2 = Tick("phase 2")
-    t3 = Tick("phase 3")
+    t1 = Tick("phase 1", root_timer)
+    t2 = Tick("phase 2", root_timer)
+    t3 = Tick("phase 3", root_timer)
 
     repo.add(t1)
     repo.add(t2)
@@ -27,7 +27,7 @@ def test_nested_nodes_1_level():
     root_timer = Timer("root")
     repo = TimeRepository(root_timer)
 
-    t1 = Tick("tick 1")
+    t1 = Tick("tick 1", root_timer)
     repo.add(t1)
 
     events = repo.get_all()
@@ -36,8 +36,8 @@ def test_nested_nodes_1_level():
     p1_timer = Timer("phase_1", unit=TimeUnit.ms, parent_ctx=root_timer)
     repo.register(p1_timer)
 
-    repo.add(Tick("simulated tick 1.1"), p1_timer)
-    repo.add(Tick("simulated tick 1.2"), p1_timer)
+    repo.add(Tick("simulated tick 1.1", p1_timer))
+    repo.add(Tick("simulated tick 1.2", p1_timer))
 
     events = repo.get_all()
     assert len(

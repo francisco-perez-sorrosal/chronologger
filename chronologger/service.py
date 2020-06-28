@@ -4,14 +4,12 @@ from .timer import TimeContext
 
 
 def register(timer: TimeContext):
-    repo = get_repo()
-    repo.register(timer)
+    get_repo().register(timer)
 
 
-def record(time_event: TimeEvent, parent_chrono: TimeContext = None):
+def record(time_event: TimeEvent):
     """Records every time event happening in the system"""
-    repo = get_repo()
-    repo.add(time_event, parent_chrono)
+    get_repo().add(time_event)
 
 
 def show_time():

@@ -9,25 +9,25 @@ class Timer(TimeContext):
 
     def __init__(self, name, unit=TimeUnit.s, simple_log=False, log_when_exiting=False, parent_ctx=None):
         self.name = name
-        self.chrono = Chronologger(name, unit, simple_log_msgs=simple_log)
+        self.chrono = Chronologger(name, self, unit, simple_log_msgs=simple_log)
         self.log_when_exiting = log_when_exiting
         self.parent_ctx: TimeContext = parent_ctx
         self.chrono.logger(f"{self.name} Timer created!")
 
     def start(self, start_suffix: str = "_start_tick") -> "Timer":
         time_event: TimeEvent = self.chrono.start(self.name + start_suffix)
-        record(time_event, self)
+        record(time_event)
         return self
 
     def mark(self, name: str) -> "TimeEvent":
         # register(self)
         time_event: TimeEvent = self.chrono.mark(name)
-        record(time_event, self)
+        record(time_event)
         return time_event
 
     def stop(self, end_suffix: str = "_end_tick", do_log: bool = False, reset: bool = False) -> Period:
         time_event: Period = self.chrono.stop(self.name + end_suffix, do_log, reset)
-        record(cast(TimeEvent, time_event), self)
+        record(cast(TimeEvent, time_event))
         return time_event
 
     def print(self):

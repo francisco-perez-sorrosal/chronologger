@@ -1,24 +1,25 @@
 import math
 import time
+import unittest.mock as mock
 
 from chronologger import Timer
 from chronologger.model import Chronologger, TimeUnit
 
 sleep_time_seconds = 1
 
-
-def test_chronologger_logs_elapsed_time(capsys):
+@mock.patch("chronologger.Timer")
+def test_chronologger_logs_elapsed_time(mock_timer, capsys):
     # Basic timer functionality!
-    timer = Chronologger()
+    timer = Chronologger("meh", mock)
     timer.start()
     time.sleep(sleep_time_seconds)  # Simulate some time has passed...
     period = timer.stop(reset=True)
     assert period.unit == TimeUnit.s
     assert math.isclose(period.time(), sleep_time_seconds, rel_tol=0.02)
 
-
-def test_chronologger_log_repoting(capsys):
-    timer = Chronologger()
+@mock.patch("chronologger.Timer")
+def test_chronologger_log_repoting(mock_timer, capsys):
+    timer = Chronologger("meh", mock_timer)
     timer.start()
     timer.stop(reset=True)
     # assert False
@@ -33,7 +34,7 @@ def test_chronologger_log_repoting(capsys):
     print(captured.out)
 
     # Check extended log messages
-    timer = Chronologger(name='explicit_name', simple_log_msgs=False)
+    timer = Chronologger('explicit_name', mock_timer, simple_log_msgs=False)
     assert timer.name == "explicit_name"
     timer.start(start_tick_name="st1")
     timer.stop(do_log=True, final_tick_name="ft1")

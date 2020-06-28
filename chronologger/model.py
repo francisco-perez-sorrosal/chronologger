@@ -35,6 +35,7 @@ class TimeUnit(enum.Enum):
 class TimeEvent(Protocol):
     """Main concept of the library, representing a discrete time event"""
     name: str
+    time_context: 'TimeContext'
     unit: TimeUnit
 
     @abstractmethod
@@ -54,6 +55,7 @@ class TimeEvent(Protocol):
 class Tick:
     """A discrete time event implementation"""
     name: str
+    time_context: 'TimeContext'
     unit: TimeUnit = TimeUnit.s
     # I decided to store the time in secs but this is just an implementation detail
     _tick_in_secs: float = field(default_factory=lambda: time.perf_counter(), init=False, repr=False)
@@ -73,7 +75,7 @@ class Tick:
     def __sub__(self, other: TimeEvent) -> 'Period':
         if other is None:
             return self
-        return Period("elapsed", other.unit, other, self)
+        return Period("elapsed", self.time_context, other.unit, other, self)
 
     def __str__(self) -> str:
         return f"{self.name}: {self.time():.3f} {self.unit.name}"
@@ -88,6 +90,7 @@ class Period:
     reconcile the results are done when results are presented."
     """
     name: str
+    time_context: 'TimeContext'
     unit: TimeUnit
     start: TimeEvent
     end: TimeEvent
@@ -115,7 +118,7 @@ class Period:
         return self.elapsed()
 
     def to(self, unit: TimeUnit) -> 'Period':
-        return Period(self.name, unit, self.start, self.end)
+        return Period(self.name, self.time_context, unit, self.start, self.end)
 
     def __sub__(self, other: 'Period') -> 'Period':
         """Builds a new Period from the parts of the two periods involved.
@@ -127,7 +130,7 @@ class Period:
         new_start_tick = other.start.to(new_time_unit)
         new_end_tick = self.end.to(new_time_unit)
         return Period(f"elapsed ({new_end_tick.name} - {new_start_tick.name})",
-                      new_time_unit, new_start_tick, new_end_tick)
+                      self.time_context, new_time_unit, new_start_tick, new_end_tick)
 
     def __str__(self) -> str:
         return f"{self.time():.3f} {self.unit.name} ({self.name})   =    {self.end} - {self.start}"
@@ -182,7 +185,7 @@ class EventRecorder:
         i = 1
         while i < len(self.events):
             marker = self.events[i]
-            period = Period(marker.name, time_unit, previous_marker, marker)
+            period = Period(marker.name, previous_marker.time_context, time_unit, previous_marker, marker)
             markers_str += f"\t- {period}\n"
             previous_marker = marker
             i += 1
@@ -199,10 +202,10 @@ class Chronologger:
 
     id_iter: ClassVar[int] = itertools.count()
 
-    name: Optional[str] = None
+    name: Optional[str]
+    time_context: 'TimeContext'
     unit: TimeUnit = TimeUnit.s
     description: str = ""
-    hierarchy_level: int = 0
     logger: Callable[[str], None] = print
     simple_log_msgs: bool = True
     ticks: EventRecorder = field(default_factory=event_recorder)
@@ -216,7 +219,7 @@ class Chronologger:
 
     def start(self, start_tick_name: str = "start_tick") -> TimeEvent:
         """Start a new basic timer"""
-        time_event = Tick(start_tick_name, self.unit)
+        time_event = Tick(start_tick_name, self.time_context, self.unit)
         self.ticks.add(time_event)
         return time_event
 
@@ -230,7 +233,7 @@ class Chronologger:
         if len(self.ticks) == 0:
             raise ChronologgerError(f"Timer not started yet! Use .start() to start counting time...")
 
-        tick = Tick(final_tick_name, unit=self.unit)
+        tick = Tick(final_tick_name, self.time_context, unit=self.unit)
 
         period: Period = self.ticks.add(tick)
         self._report_time(do_log, period)
@@ -240,7 +243,7 @@ class Chronologger:
         return period.to(self.unit)
 
     def mark(self, name: str) -> TimeEvent:
-        tick = Tick(name, unit=self.unit)
+        tick = Tick(name, self.time_context, unit=self.unit)
         self.ticks.add(tick)
         return tick
 

@@ -1,13 +1,15 @@
 import math
 import time
+import unittest.mock as mock
 
 from chronologger.model import Tick, TimeUnit, EventRecorder, TimeEvent, Period
 
 time_event_name = "tick"
 
 
-def test_tick_basic_properties():
-    tick = Tick(time_event_name)
+@mock.patch("chronologger.Timer")
+def test_tick_basic_properties(mock_timer):
+    tick = Tick(time_event_name, mock_timer)
     assert isinstance(tick, TimeEvent)
     assert isinstance(tick, Tick)
     assert tick.name == time_event_name
@@ -16,8 +18,9 @@ def test_tick_basic_properties():
     assert tick.time() < now
 
 
-def test_tick_conversions():
-    tick = Tick(time_event_name)
+@mock.patch("chronologger.Timer")
+def test_tick_conversions(mock_timer):
+    tick = Tick(time_event_name, mock_timer)
 
     tick_in_secs_again = tick.to(TimeUnit.s)
     assert tick_in_secs_again == tick
@@ -35,20 +38,22 @@ def test_tick_conversions():
     assert tick_ns.time() < now_in_ns
 
 
-def test_two_ticks_with_the_same_name_are_different_as_they_have_different_timestamps():
-    tick_1 = Tick("tock")
-    tick_2 = Tick("tock")
+@mock.patch("chronologger.Timer")
+def test_two_ticks_with_the_same_name_are_different_as_they_have_different_timestamps(mock_timer):
+    tick_1 = Tick("tock", mock_timer)
+    tick_2 = Tick("tock", mock_timer)
     assert not tick_1 == tick_2
     assert tick_1.time() < tick_2.time()
 
 
-def test_basic_homogeneus_period():
+@mock.patch("chronologger.Timer")
+def test_basic_homogeneus_period(mock_timer):
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick")
+    tick_1 = Tick("tick", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tock")
+    tick_2 = Tick("tock", mock_timer)
 
-    explicit_period = Period("test_period", TimeUnit.s, tick_1, tick_2)
+    explicit_period = Period("test_period", mock_timer, TimeUnit.s, tick_1, tick_2)
     assert isinstance(explicit_period, TimeEvent)
     assert isinstance(explicit_period, Period)
     assert explicit_period.name == "test_period"
@@ -63,14 +68,15 @@ def test_basic_homogeneus_period():
     assert math.isclose(calculated_period.elapsed(), sleep_time_secs, rel_tol=0.05)
 
 
-def test_basic_heterogeneous_period(capsys):
+@mock.patch("chronologger.Timer")
+def test_basic_heterogeneous_period(mock_timer, capsys):
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick")
+    tick_1 = Tick("tick", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tock", TimeUnit.ns)
+    tick_2 = Tick("tock", mock_timer, TimeUnit.ns)
 
     period_name = "test_period"
-    explicit_period_ms = Period(period_name, TimeUnit.ms, tick_1, tick_2)
+    explicit_period_ms = Period(period_name, mock_timer, TimeUnit.ms, tick_1, tick_2)
     tick_1_ms = tick_1.to(TimeUnit.ms).time()
     tick_2_ms = tick_2.to(TimeUnit.ms).time()
     print(tick_1_ms)
@@ -83,11 +89,12 @@ def test_basic_heterogeneous_period(capsys):
     assert TimeUnit.ms.name in captured.out
 
 
-def test_heterogeneous_period_gets_converted_properly_to_homogeneous(capsys):
+@mock.patch("chronologger.Timer")
+def test_heterogeneous_period_gets_converted_properly_to_homogeneous(mock_timer, capsys):
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick")
+    tick_1 = Tick("tick", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tock", TimeUnit.ns)
+    tick_2 = Tick("tock", mock_timer, TimeUnit.ns)
 
     heterogeneous_period = tick_2 - tick_1
     homogeneous_period: Period = heterogeneous_period.to(TimeUnit.ms)
@@ -107,7 +114,8 @@ def test_heterogeneous_period_gets_converted_properly_to_homogeneous(capsys):
 
 
 # TODO The next four tests can be combined using text fixtures and validation data passed as arguments
-def test_homogeneous_explicit_period_creation(capsys):
+@mock.patch("chronologger.Timer")
+def test_homogeneous_explicit_period_creation(mock_timer, capsys):
     """This should test that the conversions and calculations are correct
     given that the main time unit driving the process is the one that
     corresponds to the first period. As all the ticks are explicitly passed,
@@ -116,20 +124,21 @@ def test_homogeneous_explicit_period_creation(capsys):
     driver_time_unit = TimeUnit.s
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick")
+    tick_1 = Tick("tick", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tack")
+    tick_2 = Tick("tack", mock_timer)
 
-    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+    explicit_period_1 = Period("period_1", mock_timer, driver_time_unit, tick_1, tick_2)
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_3 = Tick("tock")
+    tick_3 = Tick("tock", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_4 = Tick("tuck")
+    tick_4 = Tick("tuck", mock_timer)
 
-    explicit_period_2 = Period("period_2", TimeUnit.s, tick_3, tick_4)
+    explicit_period_2 = Period("period_2", mock_timer, TimeUnit.s, tick_3, tick_4)
 
-    combined_explicit_period = Period("new_period", TimeUnit.s, explicit_period_1.start, explicit_period_2.end)
+    combined_explicit_period = Period("new_period", mock_timer, TimeUnit.s, explicit_period_1.start,
+                                      explicit_period_2.end)
 
     assert combined_explicit_period.name == "new_period"
     assert combined_explicit_period.unit == driver_time_unit
@@ -137,7 +146,8 @@ def test_homogeneous_explicit_period_creation(capsys):
     assert combined_explicit_period.end == tick_4
 
 
-def test_homogeneous_calculated_period_difference(capsys):
+@mock.patch("chronologger.Timer")
+def test_homogeneous_calculated_period_difference(mock_timer, capsys):
     """This should test that the conversions and calculations are correct
     given that the main time unit driving the process is the one that
     corresponds to the first period. As all the ticks involved are
@@ -146,18 +156,18 @@ def test_homogeneous_calculated_period_difference(capsys):
     driver_time_unit = TimeUnit.s
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick")
+    tick_1 = Tick("tick", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tack")
+    tick_2 = Tick("tack", mock_timer)
 
-    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+    explicit_period_1 = Period("period_1", mock_timer, driver_time_unit, tick_1, tick_2)
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_3 = Tick("tock")
+    tick_3 = Tick("tock", mock_timer)
     time.sleep(sleep_time_secs)
-    tick_4 = Tick("tuck")
+    tick_4 = Tick("tuck", mock_timer)
 
-    explicit_period_2 = Period("period_2", TimeUnit.s, tick_3, tick_4)
+    explicit_period_2 = Period("period_2", mock_timer, TimeUnit.s, tick_3, tick_4)
 
     combined_calculated_period = explicit_period_2 - explicit_period_1
 
@@ -167,7 +177,8 @@ def test_homogeneous_calculated_period_difference(capsys):
     assert combined_calculated_period.end == tick_4
 
 
-def test_heterogeneous_explicit_period_creation(capsys):
+@mock.patch("chronologger.Timer")
+def test_heterogeneous_explicit_period_creation(mock_timer, capsys):
     """This should test that the conversions and calculations are correct
     given that the main time unit driving the process is the one that
     corresponds to the first period. As all the ticks involved are
@@ -176,20 +187,21 @@ def test_heterogeneous_explicit_period_creation(capsys):
     driver_time_unit = TimeUnit.s
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick", TimeUnit.ns)
+    tick_1 = Tick("tick", mock_timer, TimeUnit.ns)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tack", TimeUnit.ms)
+    tick_2 = Tick("tack", mock_timer, TimeUnit.ms)
 
-    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+    explicit_period_1 = Period("period_1", mock_timer, driver_time_unit, tick_1, tick_2)
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_3 = Tick("tock", TimeUnit.ns)
+    tick_3 = Tick("tock", mock_timer, TimeUnit.ns)
     time.sleep(sleep_time_secs)
-    tick_4 = Tick("tuck", TimeUnit.ms)
+    tick_4 = Tick("tuck", mock_timer, TimeUnit.ms)
 
-    explicit_period_2 = Period("period_2", TimeUnit.ms, tick_3, tick_4)
+    explicit_period_2 = Period("period_2", mock_timer, TimeUnit.ms, tick_3, tick_4)
 
-    combined_calculated_period = Period("new_period", driver_time_unit, explicit_period_1.start, explicit_period_2.end)
+    combined_calculated_period = Period("new_period", mock_timer, driver_time_unit, explicit_period_1.start,
+                                        explicit_period_2.end)
 
     assert combined_calculated_period.name == f"new_period"
     assert combined_calculated_period.unit == driver_time_unit
@@ -199,7 +211,8 @@ def test_heterogeneous_explicit_period_creation(capsys):
     assert combined_calculated_period.end.unit == tick_4.unit
 
 
-def test_heterogeneous_calculated_period_difference(capsys):
+@mock.patch("chronologger.Timer")
+def test_heterogeneous_calculated_period_difference(mock_timer, capsys):
     """This should test that the conversions and calculations are correct
     given that the main time unit driving the process is the one that
     corresponds to the first period. Conversions of the ticks involved
@@ -208,18 +221,18 @@ def test_heterogeneous_calculated_period_difference(capsys):
     driver_time_unit = TimeUnit.s
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_1 = Tick("tick", TimeUnit.ns)
+    tick_1 = Tick("tick", mock_timer, TimeUnit.ns)
     time.sleep(sleep_time_secs)
-    tick_2 = Tick("tack", TimeUnit.ms)
+    tick_2 = Tick("tack", mock_timer, TimeUnit.ms)
 
-    explicit_period_1 = Period("period_1", driver_time_unit, tick_1, tick_2)
+    explicit_period_1 = Period("period_1", mock_timer, driver_time_unit, tick_1, tick_2)
 
     sleep_time_secs = 0.1  # 100 ms
-    tick_3 = Tick("tock", TimeUnit.ns)
+    tick_3 = Tick("tock", mock_timer, TimeUnit.ns)
     time.sleep(sleep_time_secs)
-    tick_4 = Tick("tuck", TimeUnit.ms)
+    tick_4 = Tick("tuck", mock_timer, TimeUnit.ms)
 
-    explicit_period_2 = Period("period_2", TimeUnit.ms, tick_3, tick_4)
+    explicit_period_2 = Period("period_2", mock_timer, TimeUnit.ms, tick_3, tick_4)
 
     combined_calculated_period = explicit_period_2 - explicit_period_1
 
@@ -231,21 +244,23 @@ def test_heterogeneous_calculated_period_difference(capsys):
     assert combined_calculated_period.end.unit == driver_time_unit
 
 
-def test_event_recorder_can_hold_and_retrieve_events():
+@mock.patch("chronologger.Timer")
+def test_event_recorder_can_hold_and_retrieve_events(mock_timer):
     num_of_time_events_to_create = 3
     event_recorder = EventRecorder()
     for i in range(0, num_of_time_events_to_create):
-        event_recorder.add(Tick(f"evt {i}"))
+        event_recorder.add(Tick(f"evt {i}", mock_timer))
         time.sleep(0.1)
     assert len(event_recorder.get_all()) == num_of_time_events_to_create
 
 
-def test_event_recorder_can_homogeinize_different_event_time_units():
+@mock.patch("chronologger.Timer")
+def test_event_recorder_can_homogeinize_different_event_time_units(mock_timer):
     event_recorder = EventRecorder()
-    tick_1 = Tick(f"evt 1", unit=TimeUnit.s)
+    tick_1 = Tick(f"evt 1", mock_timer, unit=TimeUnit.s)
     event_recorder.add(tick_1)
     time.sleep(0.1)
-    tick_2 = Tick(f"evt 2", unit=TimeUnit.ns)
+    tick_2 = Tick(f"evt 2", mock_timer, unit=TimeUnit.ns)
     event_recorder.add(tick_2)
     assert len(event_recorder.get_all()) == 2
 
