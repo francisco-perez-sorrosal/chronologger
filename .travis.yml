@@ -44,5 +44,5 @@ jobs:
         password:
           secure: ${PYPI_TEST_TOKEN}
         on:
-          tags: true
+          tags: false
           repo: francisco-perez-sorrosal/chronologger
