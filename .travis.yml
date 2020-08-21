@@ -28,3 +28,16 @@ jobs:
         - git push origin-version bump_version:master
         - echo "Sending coverage report..."
 
+    - deploy:
+      provider: pypi
+      distributions: "sdist bdist_wheel"
+      user: "__token__"
+      password:
+        secure: ${PYPI_TEST_TOKEN}
+      on:
+        tags: true
+        repo: francisco-perez-sorrosal/chronologger
+        python:
+          - "3.6"
+          - "3.7"
+          - "3.8"
