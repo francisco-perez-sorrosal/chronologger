@@ -15,6 +15,7 @@ after_success:
   - coveralls
 
 stages:
+- test
 - 'Bump Version'
 - deploy
 
@@ -45,7 +46,3 @@ jobs:
         on:
           tags: true
           repo: francisco-perez-sorrosal/chronologger
-          python:
-            - "3.6"
-            - "3.7"
-            - "3.8"
