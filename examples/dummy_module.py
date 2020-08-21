@@ -1,11 +1,8 @@
 import time
 
-import chronologger
-import chronologger.service
-
-repo = chronologger.service.getRepository()
+from chronologger import Timer, TimeUnit
 
 
-# @Chronologger(name="Foo method!", unit=TimeUnit.ms, simple_log_msgs=False, log_when_exiting_context=True)
-def dummy_1():
+@Timer(name="Foo method in module!", unit=TimeUnit.ms, simple_log=True)
+def foo():
     time.sleep(0.1)

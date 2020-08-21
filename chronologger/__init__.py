@@ -1,6 +1,4 @@
 from .model import TimeUnit, Tick, Period, TimeContext, TimeEvent
 from .repository import init_repo
-from .timer import Timer
+from .timer import Timer, root_timer
 
-main_timer = Timer(name="root")
-root_repo = repository.init_repo(main_timer)

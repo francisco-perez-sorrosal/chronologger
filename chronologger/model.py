@@ -82,6 +82,17 @@ class Tick:
 
 
 @dataclass(frozen=True)
+class Label(Tick):
+    fillup_char: chr = "*"
+    repeat_no: int = 80
+
+    def __str__(self) -> str:
+        return (f"{self.fillup_char * self.repeat_no}\n"
+                f"{self.name}: {self.time():.3f} {self.unit.name}\n"
+                f"{self.fillup_char * self.repeat_no}\n")
+
+
+@dataclass(frozen=True)
 class Period:
     """Represents the elapsed time between two time events.
 

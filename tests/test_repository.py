@@ -1,4 +1,5 @@
-from chronologger import Tick, Timer, TimeUnit, root_repo
+from chronologger import Tick, Timer, TimeUnit
+from chronologger.timer import root_repo
 from chronologger.repository import TimeRepository, RootTimeRepository
 
 

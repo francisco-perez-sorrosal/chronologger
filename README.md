@@ -1,6 +1,6 @@
 # Chronologger
 
-Time utilities for Python
+Time utilities for Python<sup>[1](#footnote1)</sup>
 
 [![Build Status](https://travis-ci.org/francisco-perez-sorrosal/chronologger.svg?branch=master)](https://travis-ci.org/francisco-perez-sorrosal/chronologger)
 [![Coverage Status](https://coveralls.io/repos/github/francisco-perez-sorrosal/chronologger/badge.svg?branch=master)](https://coveralls.io/github/francisco-perez-sorrosal/chronologger?branch=master)
@@ -48,18 +48,35 @@ or open your python environment/IDE and execute:
 ```python
 import time
 
-from chronologger import Chronologger, TimeUnit
+from chronologger import Timer, TimeUnit, root_timer
 
-@Chronologger(name="Foo method!", unit=TimeUnit.ms, simple_log_msgs=False, log_when_exiting_context=True)
+
+# Example of decorator: This should report ~100ms each time that is called
+@Timer(name="Foo method!", unit=TimeUnit.ms, simple_log=True)
 def foo():
     time.sleep(0.1)
 
-with Chronologger(name="Test Loop!", unit=TimeUnit.s,
-                  simple_log_msgs=False, log_when_exiting_context=True).start() as timer:
-    for i in range(3):
-        time.sleep(0.1)  # e.g. simulate IO
-        foo()
-        timer.mark("i_{}".format(i))
+
+def main():
+    # Example of explicit timer: This should report ~100ms
+    timer = Timer("Individual Timer", unit=TimeUnit.ms).start()
+    time.sleep(0.1)
+    timer.stop()
+
+    # Example of explicit context timer: This should report ~1s
+    with Timer(name="Test Loop!", unit=TimeUnit.s, simple_log=True) as timer:
+        for i in range(5):
+            time.sleep(0.1)  # e.g. simulate IO
+            foo()
+            timer.mark("i_{}".format(i))
+
+
+if __name__ == "__main__":
+    root_timer.label("   STARTING!!!")
+    main()
+    root_timer.label("   PRINTING TIME")
+    root_timer.print()
+
 ```
 
 # Development
@@ -85,3 +102,7 @@ Use other commands in the Makefile for extra functionality.
 ### IDE (PyCharm) Docker Interpreter
 Once you create the Docker image with `make dbuild` you can specify the `chronologger-dev:latest` image as a Ptyhon
 Docker interpreter in IntelliJ/PyCharm for example.
+
+---
+
+<a name="footnote1">1</a>: Inspired by the blog post [Python Timer Functions: Three Ways to Monitor Your Code](https://realpython.com/python-timer/) by Geir Arne Hjelle 

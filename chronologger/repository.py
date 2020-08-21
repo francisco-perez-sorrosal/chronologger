@@ -1,7 +1,7 @@
 import abc
 from typing import Optional, List, Dict
 
-from .model import TimeEvent, TimeContext
+from .model import TimeEvent, TimeContext, Period, Label
 
 
 class AbstractTimeRepository(abc.ABC):
@@ -46,7 +46,8 @@ class TimeRepository(AbstractTimeRepository):
     def __str__(self):
         representation = ""
         for time_event in self.time_events:  # TODO Skip printing single tick events (e.g. create an enum to differentiate TimeEvent types)
-            representation += str(time_event) + "\n"
+            if isinstance(time_event, Label) or isinstance(time_event, Period):
+                representation += str(time_event) + "\n"
         return representation
 
 

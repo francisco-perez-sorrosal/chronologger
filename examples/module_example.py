@@ -1,12 +1,8 @@
 import time
 
-from chronologger import Timer, TimeUnit, root_timer
-
-
-# Example of decorator: This should report ~100ms each time that is called
-@Timer(name="Foo method!", unit=TimeUnit.ms, simple_log=True)
-def foo():
-    time.sleep(0.1)
+from chronologger import Timer, TimeUnit
+from chronologger import root_timer
+from examples import dummy_module
 
 
 def main():
@@ -16,10 +12,10 @@ def main():
     timer.stop()
 
     # Example of explicit context timer: This should report ~1s
-    with Timer(name="Test Loop!", unit=TimeUnit.s, simple_log=True) as timer:
+    with Timer(name="Test Loop calling module!", unit=TimeUnit.s, simple_log=True) as timer:
         for i in range(5):
             time.sleep(0.1)  # e.g. simulate IO
-            foo()
+            dummy_module.foo()
             timer.mark("i_{}".format(i))
 
 

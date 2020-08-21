@@ -1,6 +1,7 @@
 from typing import Any, cast
 
-from chronologger.model import Period, TimeContext, TimeEvent, Chronologger, TimeUnit
+from chronologger.model import Period, TimeContext, TimeEvent, Chronologger, TimeUnit, Label
+from chronologger.repository import init_repo
 from chronologger.service import record, register, show_time
 
 
@@ -20,8 +21,12 @@ class Timer(TimeContext):
         return self
 
     def mark(self, name: str) -> "TimeEvent":
-        # register(self)
         time_event: TimeEvent = self.chrono.mark(name)
+        record(time_event)
+        return time_event
+
+    def label(self, name: str):
+        time_event: TimeEvent = Label(name, self)
         record(time_event)
         return time_event
 
@@ -67,3 +72,7 @@ class Timer(TimeContext):
                 f"------------------------------------------------------------------------------------------\n"
             )
         return representation
+
+
+root_timer = Timer(name="root")
+root_repo = init_repo(root_timer)
