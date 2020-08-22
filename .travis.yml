@@ -45,7 +45,7 @@ jobs:
         server: https://test.pypi.org/legacy/
         user: __token__
         password:
-          secure: ${PYPI_TEST_TOKEN}
+          secure: "SY0b9vcUt233TbV4+EtfE7XH6BSKz5MXObkuZHG6pg0NSgW7b3WD4koJcaqDSQUu0EuQErirCSDNM8DpiSCTBxYsceo9zBimCle7W9PeEbPTI3i4TKKsUcPdA3HYyge3sSo6vZ+mHw0xNDqFLN36KSIOUQWEghtIdOlaCGa1/KDkBIDsMUmSUKHE4fujAriuxFFRzdAyFw5gzABcQ1N7P2mQYcxxxSQpmeqj2QYyHXXw4RNtzYqaot7QFcZ91VSKhrzSoyXlxNjt6YkO28ksDN6j7Mr3ZaLX3bshpu4LJk+wS319aXMSWVqPbWdgawEWQfABoBJKjMWb1lQkEeHl3jevYV3jAg2YF5od8zE+hew4BZPIuvc8pu/Z4UnMG/7/rAmqkBN8EFcUXMcQyc+RzWrrUQJ539RRmIXfMCS0fZEiCSiPhwplfc62a8QNNNsAUflWHD5xwKqaPQVYO+/EzVt+7zN6PLfFxDXLcmPU4YCY4pMylBvq4q9XV87JmAljrfwx8vKl2oXc4RMu6zXt4qQCBMtog5ISrb3+mBl8fHl+SXY/7oZp+c20cscmQfYbIiwSTKoFLEogZu5m8oxq1SIFJbjeU6v5+mvFXC6x28xW968nY90iqXuLa7MyVsB59fNvvzNm2usUS5VsJQZzoQP45mhqJ6d3nBuDr0WE+g8="
         on:
           tags: false
           repo: francisco-perez-sorrosal/chronologger
