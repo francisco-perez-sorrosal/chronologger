@@ -42,10 +42,10 @@ jobs:
         distributions: sdist bdist_wheel
         skip_upload_docs: true
         skip_cleanup: true
-        server: https://test.pypi.org/legacy/
+        server: https://upload.pypi.org/legacy/
         user: __token__
         password:
-          secure: "SY0b9vcUt233TbV4+EtfE7XH6BSKz5MXObkuZHG6pg0NSgW7b3WD4koJcaqDSQUu0EuQErirCSDNM8DpiSCTBxYsceo9zBimCle7W9PeEbPTI3i4TKKsUcPdA3HYyge3sSo6vZ+mHw0xNDqFLN36KSIOUQWEghtIdOlaCGa1/KDkBIDsMUmSUKHE4fujAriuxFFRzdAyFw5gzABcQ1N7P2mQYcxxxSQpmeqj2QYyHXXw4RNtzYqaot7QFcZ91VSKhrzSoyXlxNjt6YkO28ksDN6j7Mr3ZaLX3bshpu4LJk+wS319aXMSWVqPbWdgawEWQfABoBJKjMWb1lQkEeHl3jevYV3jAg2YF5od8zE+hew4BZPIuvc8pu/Z4UnMG/7/rAmqkBN8EFcUXMcQyc+RzWrrUQJ539RRmIXfMCS0fZEiCSiPhwplfc62a8QNNNsAUflWHD5xwKqaPQVYO+/EzVt+7zN6PLfFxDXLcmPU4YCY4pMylBvq4q9XV87JmAljrfwx8vKl2oXc4RMu6zXt4qQCBMtog5ISrb3+mBl8fHl+SXY/7oZp+c20cscmQfYbIiwSTKoFLEogZu5m8oxq1SIFJbjeU6v5+mvFXC6x28xW968nY90iqXuLa7MyVsB59fNvvzNm2usUS5VsJQZzoQP45mhqJ6d3nBuDr0WE+g8="
+          secure: "As2Ngdptwr22Nr9vaUX1m2LyoTagBLpLhbj5ohPNOR0J2msI7fy5lNg4FiltqzjNkjt4lHnrTrCKD4+ZkoVOgqijc4ig6xJhNg+yiaMXxUYy6gPQYGe0uyTpY8mjJtHmBLnlITrlydLoYg1TE2ico/1R04Sg/s0DwxQWYNAQUGZORU8XPelAG3k0oz3W5XwCASeL119IGM0Gf1CVpJHZOXx6clKDpAmBFtEla6o0YFSFDE2ymeLyy0RJ+3lb4NPjYTeZdcJH1iwSXcaBeWJt/kld9bQO5u5Oz9/oikOkYhcZBafXb8lPDBzj8lJKQMstBgT/6cfXtVUTnYiMZDsH6qXgAzD2N08wzMSplBUo+px8vn+shYYsdcG5PZaDIYeSQx6WGuAM/xmR1aGStqVvGIzeWefquUv2G2BW8TCfm6DQ1amliOgPlADS65xbKBpPV7Ds87wlt31Zne4EN1Kkm/3W32npOJfYNWt8Gw/aB7oDledOnXq1wNKO01TmEYHLQCtf/+N57iknCsU8owFRbQB5LIgh6D4RuAMQdJrXsHpkdmHd1iBjpX0HcUK+wJJ0mQAZBJqcO/WmufbglQgjtOLX10LyLvPKrjZdt/+xnKlksWx+qlWVpaA23XtsIJLWS0lcGW5v1ZSwDHrfnYOGJZu1CG3QQWFGYfLojyWzROc="
         on:
           tags: false
           repo: francisco-perez-sorrosal/chronologger
